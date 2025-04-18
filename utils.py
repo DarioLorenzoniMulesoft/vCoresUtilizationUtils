@@ -5,9 +5,12 @@ from rich.table import Table
 import inquirer
 import getpass
 from alive_progress import alive_bar
+import argparse
 
 US_BASE_URL = "https://anypoint.mulesoft.com"
 EU_BASE_URL = "https://eu1.anypoint.mulesoft.com"
+
+__version__ = '0.0.1'
 
 def get_bearer_token(base_url, client_id, client_secret):
   url = f"{base_url}/accounts/api/v2/oauth2/token"
@@ -85,6 +88,15 @@ def calculate_vcore_usage(base_url, access_token, org_id, env_id):
       total_vcore_usage += vcore * replicas
       bar()
   return round(total_vcore_usage, 2), d
+
+
+parser = argparse.ArgumentParser(description='''This Python script retrieves and displays vCore usage within a MuleSoft Anypoint Platform organization.''')
+parser.add_argument("-v", "--version", help="Set VCDECH_VERSION Environment Variable", action='store_true')
+args = parser.parse_args()
+
+if args.version:
+  print(__version__)
+  exit()
 
 questions = [
   inquirer.List('cp_location',
