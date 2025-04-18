@@ -71,9 +71,26 @@ jobs:
           # Include the version in the executable name
           python -m PyInstaller --onefile --name "vcdech-v${{ env.VERSION }}-mac" utils.py
 
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ runner.os }}-executable-v${{ env.VERSION }}
-          path: dist/
+          name: vcdech-v${{ env.VERSION }}-${{ matrix.os }}
+          path: ${{ steps.build_executable.outputs.EXECUTABLE_PATH }} # Correctly use the output from the build step
+          if-no-files: error
+
+      - name: Create Release
+        if: ${{ github.ref == 'refs/heads/main' }} # important, only for main branch
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: "v${{ env.VERSION }}"
+          name: "vcdech v${{ env.VERSION }}"
+          body: |
+            Release of vcdech version ${{ env.VERSION }}.
+            Includes executables for Windows, Linux, and macOS.
+          files: |
+            dist/vcdech-v${{ env.VERSION }}-win.exe
+            dist/vcdech-v${{ env.VERSION }}-linux
+            dist/vcdech-v${{ env.VERSION }}-mac
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
