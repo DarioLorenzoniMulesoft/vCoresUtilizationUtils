@@ -10,7 +10,7 @@ import argparse
 US_BASE_URL = "https://anypoint.mulesoft.com"
 EU_BASE_URL = "https://eu1.anypoint.mulesoft.com"
 
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 def get_bearer_token(base_url, client_id, client_secret):
   url = f"{base_url}/accounts/api/v2/oauth2/token"
