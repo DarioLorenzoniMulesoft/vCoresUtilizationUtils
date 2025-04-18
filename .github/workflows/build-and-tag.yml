@@ -31,13 +31,18 @@ jobs:
       - name: Get version from script
         id: get_version
         run: |
-          # IMPORTANT: Replace 'your_script.py' with the actual name of your main Python script.
-          python -c "import utils; \
-                     import sys; \
-                     if not hasattr(utils, '__version__'): \
-                       print('::error title=Version Missing::__version__ is not defined in utils.py'); \
-                       sys.exit(1); \
-                     print(f'VERSION={utils.__version__}')" >> $GITHUB_OUTPUT
+          SCRIPT_NAME="utils.py" # Store the script name as a variable
+          python -c "import sys; \
+                     try: \
+                       import \${SCRIPT_NAME::-3}; # Import without the .py extension \
+                       script_module = sys.modules[\${SCRIPT_NAME::-3}]; \
+                       if not hasattr(script_module, '__version__'): \
+                         print('::error title=Version Missing::__version__ is not defined in \${SCRIPT_NAME}'); \
+                         sys.exit(1); \
+                       print(f'VERSION={script_module.__version__}') \
+                     except ImportError: \
+                       print(f'::error title=Import Error::Could not import \${SCRIPT_NAME}.  Make sure it exists.'); \
+                       sys.exit(1);" >> $GITHUB_OUTPUT
           echo "VERSION=${VERSION}" >> $GITHUB_ENV #set env variable
 
       - name: Check for Version
