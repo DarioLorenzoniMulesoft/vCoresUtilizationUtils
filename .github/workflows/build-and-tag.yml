@@ -34,10 +34,6 @@ jobs:
         run: |
           VERSION=$(python -W ignore utils.py --version)
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          if [ -z "$VERSION" ]; then
-            echo "Error: Version was not set!"
-            exit 1
-          fi
 
       - name: Create Git tag
         if: ${{ github.ref == 'refs/heads/main' }} # Only tag on pushes to main
@@ -54,19 +50,19 @@ jobs:
         if: matrix.os == 'windows-latest'
         id: build_windows
         run: |
-          python -m PyInstaller --onefile --name "vcdech-v${{ env.VERSION }}-win" utils.py
+          python -m PyInstaller --onefile --name --clean "vcdech-v${{ env.VERSION }}-win" utils.py
           echo "EXECUTABLE_PATH=dist/vcdech-v${{ env.VERSION }}-win.exe" >> $GITHUB_OUTPUT
       - name: Build executable (Linux)
         if: matrix.os == 'ubuntu-latest'
         id: build_linux
         run: |
-          python -m PyInstaller --onefile --name "vcdech-v${{ env.VERSION }}-linux" utils.py
+          python -m PyInstaller --onefile --clean --name "vcdech-v${{ env.VERSION }}-linux" utils.py
           echo "EXECUTABLE_PATH=dist/vcdech-v${{ env.VERSION }}-linux" >> $GITHUB_OUTPUT
       - name: Build executable (macOS)
         if: matrix.os == 'macos-latest'
         id: build_mac
         run: |
-          python -m PyInstaller --onefile --name "vcdech-v${{ env.VERSION }}-mac" utils.py
+          python -m PyInstaller --onefile --clean --name "vcdech-v${{ env.VERSION }}-mac" utils.py
           echo "EXECUTABLE_PATH=dist/vcdech-v${{ env.VERSION }}-mac" >> $GITHUB_OUTPUT
           # Esegue la creazione del pacchetto DMG
           mkdir -p build
