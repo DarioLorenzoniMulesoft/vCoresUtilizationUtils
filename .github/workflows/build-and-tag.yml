@@ -52,27 +52,28 @@ jobs:
 
       - name: Build executable (Windows)
         if: matrix.os == 'windows-latest'
+        id: build_windows
         run: |
-          # Include the version in the executable name
           python -m PyInstaller --onefile --name "vcdech-v${{ env.VERSION }}-win" utils.py
-
+          echo "EXECUTABLE_PATH=dist/vcdech-v${{ env.VERSION }}-win.exe" >> $GITHUB_OUTPUT
       - name: Build executable (Linux)
         if: matrix.os == 'ubuntu-latest'
+        id: build_linux
         run: |
-          # Include the version in the executable name
           python -m PyInstaller --onefile --name "vcdech-v${{ env.VERSION }}-linux" utils.py
-
+          echo "EXECUTABLE_PATH=dist/vcdech-v${{ env.VERSION }}-linux" >> $GITHUB_OUTPUT
       - name: Build executable (macOS)
         if: matrix.os == 'macos-latest'
+        id: build_mac
         run: |
-          # Include the version in the executable name
           python -m PyInstaller --onefile --name "vcdech-v${{ env.VERSION }}-mac" utils.py
+          echo "EXECUTABLE_PATH=dist/vcdech-v${{ env.VERSION }}-mac" >> $GITHUB_OUTPUT
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: vcdech-v${{ env.VERSION }}-${{ matrix.os }}
-          path: ${{ steps.build_executable.outputs.EXECUTABLE_PATH }} # Correctly use the output from the build step
+          path: ${{ steps.build_windows.outputs.EXECUTABLE_PATH || steps.build_linux.outputs.EXECUTABLE_PATH || steps.build_mac.outputs.EXECUTABLE_PATH }}
           if-no-files-found: error
 
       - name: Create Release
