@@ -73,7 +73,7 @@ jobs:
         with:
           name: vcdech-v${{ env.VERSION }}-${{ matrix.os }}
           path: ${{ steps.build_executable.outputs.EXECUTABLE_PATH }} # Correctly use the output from the build step
-          if-no-files: error
+          if-no-files-found: error
 
       - name: Create Release
         if: ${{ github.ref == 'refs/heads/main' }} # important, only for main branch
