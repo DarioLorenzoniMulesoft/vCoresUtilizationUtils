@@ -32,25 +32,15 @@ jobs:
             pip install -r requirements.txt
           fi
 
-      - name: Get version from script
+      - name: Get version and set env
         id: get_version
         run: |
-          # IMPORTANT: Replace 'your_script.py' with the actual name of your main Python script.
-          VERSION_COMMAND="python -W ignore utils.py --version"
-          # Try to get the version using the command.
-          VERSION=$($VERSION_COMMAND)
-          if [[ -z "$VERSION" ]]; then
-            echo "::error title=Version Check Failed::Failed to get version from script using command: $VERSION_COMMAND"
+          VERSION=$(python -W ignore utils.py --version)
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          if [ -z "$VERSION" ]; then
+            echo "Error: Version was not set!"
             exit 1
           fi
-          echo "::set-output name=version::$VERSION"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      - name: Check for Version
-        if: ${{ env.VERSION == '' }}
-        run: |
-          echo "::error title=Version Check Failed::The __version__ variable is missing or empty in your Python script."
-          exit 1
 
       - name: Create Git tag
         if: ${{ github.ref == 'refs/heads/main' }} # Only tag on pushes to main
