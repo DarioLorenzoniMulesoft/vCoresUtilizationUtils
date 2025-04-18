@@ -68,6 +68,12 @@ jobs:
         run: |
           python -m PyInstaller --onefile --name "vcdech-v${{ env.VERSION }}-mac" utils.py
           echo "EXECUTABLE_PATH=dist/vcdech-v${{ env.VERSION }}-mac" >> $GITHUB_OUTPUT
+          # Esegue la creazione del pacchetto DMG
+          mkdir -p build
+          cp dist/vcdech-v${{ env.VERSION }}-mac build/vcdech-v${{ env.VERSION }}-mac
+          # Crea il file DMG
+          hdiutil create -volname "vcdech-v${{ env.VERSION }}" -srcfolder build -ov -format UDZO -o "vcdech-v${{ env.VERSION }}.dmg"
+          echo "EXECUTABLE_PATH=vcdech-v${{ env.VERSION }}.dmg" >> $GITHUB_OUTPUT
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
