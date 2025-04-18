@@ -1,0 +1,83 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_tag:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        python-version: [3.9] # You can adjust this
+
+    steps:
+    
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed to fetch all history for tags
+          
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+
+      - name: Get version from script
+        id: get_version
+        run: |
+          # IMPORTANT: Replace 'your_script.py' with the actual name of your main Python script.
+          python -c "import utils; \
+                     import sys; \
+                     if not hasattr(utils, '__version__'): \
+                       print('::error title=Version Missing::__version__ is not defined in utils.py'); \
+                       sys.exit(1); \
+                     print(f'VERSION={utils.__version__}')" >> $GITHUB_OUTPUT
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV #set env variable
+
+      - name: Check for Version
+        if: ${{ env.VERSION == '' }}
+        run: |
+          echo "::error title=Version Check Failed::The __version__ variable is missing or empty in your Python script."
+          exit 1
+
+      - name: Create Git tag
+        if: ${{ github.ref == 'refs/heads/main' }} # Only tag on pushes to main
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git tag "v${VERSION}" # Use the version from the script
+          git push --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ env.VERSION }}
+
+      - name: Build executable (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          # Include the version in the executable name
+          python -m PyInstaller --onefile --name "vcdech-v${{ env.VERSION }}-win" utils.py
+
+      - name: Build executable (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          # Include the version in the executable name
+          python -m PyInstaller --onefile --name "vcdech-v${{ env.VERSION }}-linux" utils.py
+
+      - name: Build executable (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          # Include the version in the executable name
+          python -m PyInstaller --onefile --name "vcdech-v${{ env.VERSION }}-mac" utils.py
+
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-executable-v${{ env.VERSION }}
+          path: dist/
